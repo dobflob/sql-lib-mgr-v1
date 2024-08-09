@@ -30,7 +30,11 @@ form a.button, input[type=submit] {
 }
 
 .search-form {
-  margin-top: 50px;
+  margin: 20px 0;
+}
+
+.search-form input[type="submit"] {
+  margin-left: 10px;
 }
 
 input[type=submit] {

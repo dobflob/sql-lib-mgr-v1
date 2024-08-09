@@ -25,6 +25,25 @@ router.get('/', asyncHandler(async (req, res) => {
   res.render('books/index', { books: books, title: 'Books'});
 }));
 
+router.get('/search', asyncHandler(async (req, res) => {
+  const queryString = req.query.search;
+  //console.log(queryString);
+  const results = await Book.findAll({
+    attributes: ['title', 'author', 'genre', 'year'],
+    where: {
+      [Op.or]: [
+        { title: {[Op.like]: '%' + queryString + '%'}},
+        { author: {[Op.like]: '%' + queryString + '%'}},
+        { genre: {[Op.like]: '%' + queryString + '%'}},
+        { year: {[Op.like]: '%' + queryString + '%'}},
+      ]
+    }
+  });
+
+  const books = results.map(book => book.dataValues);
+  res.render('books/', {books: books, title: 'Books'});
+}));
+
 /* GET New book form */
 router.get('/new', asyncHandler(async (req, res) => {
   res.render(`books/new-book`, { book: {}, title: 'Create Book'});
