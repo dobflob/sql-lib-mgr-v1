@@ -1,0 +1,25 @@
+extends ../layout
+
+block content
+  h1 Update Book
+  form(action=`/books/${book.id}/update`, method="post")
+    include validation-error
+    p
+      label(for="title") Title
+      input(type="text", id="title", name="title", value=book.title)
+    p
+      label(for="author") Author
+      input(type="text", id="author", name="author", value=book.author)
+    p
+      label(for="genre") Genre
+      input(type="text", id="genre", name="genre", value=book.genre)
+    p
+      label(for="year") Year
+      input(type="text", id="year", name="year", value=book.year)
+    p
+      input(type="submit", value="Update Book")
+  form(action=`/books/${book.id}/delete`, method="post")
+    p
+      a(href='/books', class="button") Cancel
+    p
+      input(type="submit", value="Delete Book")
