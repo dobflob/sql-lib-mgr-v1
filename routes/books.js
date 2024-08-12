@@ -1,4 +1,5 @@
 const express = require('express');
+const createHttpError = require('http-errors');
 const router = express.Router();
 const Book = require('../models').Book;
 const { Op } = require("sequelize");
@@ -60,6 +61,38 @@ router.post('/new', asyncHandler(async (req, res) => {
   }
 }));
 
+/* GET search results */
+router.get('/:search', asyncHandler(async (req, res, next) => {
+  // check if there is a page or search term, if not keep moving
+  if (req.query.search === '' || req.query.search || req.query.page) {
+    const page = req.query.page ? parseInt(req.query.page) : defaultPage;
+    const qString = req.query.search ? req.query.search : '';
+    pageOffset = (page - 1) * pageLimit;
+
+    // set value of url to the search text if there is search text
+    url = qString ? `search=${qString}&` : '';
+
+    const { count, rows } = await Book.findAndCountAll({
+      attributes: ['id', 'title', 'author', 'genre', 'year'],
+      where: {
+        [Op.or]: [
+          { title: {[Op.like]: '%' + qString + '%'}},
+          { author: {[Op.like]: '%' + qString + '%'}},
+          { genre: {[Op.like]: '%' + qString + '%'}},
+          { year: {[Op.like]: '%' + qString + '%'}},
+        ]
+      },
+      limit: pageLimit,
+      offset: pageOffset
+    });
+    const pagination = Array.from([...Array(Math.ceil(count/pageLimit)).keys()]); // create array from number of pages to populate pagination view
+    const books = rows.map(book => book.dataValues);
+    res.render('books/', {books: books, page: page, url: url, pagination: pagination, title: 'Books'});
+  } else {
+    next();
+  }
+}));
+
 /* GET book details */
 router.get('/:id', asyncHandler(async (req, res, next) => {
   const book = await Book.findByPk(req.params.id);
@@ -95,32 +128,7 @@ router.post('/:id/delete', asyncHandler(async (req, res) => {
   res.redirect(`/books`);
 }));
 
-/* GET search results */
-router.get('/:search', asyncHandler(async (req, res) => {
-  const page = req.query.page ? parseInt(req.query.page) : defaultPage;
-  const qString = req.query.search ? req.query.search : '';
-  pageOffset = (page - 1) * pageLimit;
 
-  // set value of url to the search text if there is search text
-  url = qString ? `search=${qString}&` : '';
-
-  const { count, rows } = await Book.findAndCountAll({
-    attributes: ['id', 'title', 'author', 'genre', 'year'],
-    where: {
-      [Op.or]: [
-        { title: {[Op.like]: '%' + qString + '%'}},
-        { author: {[Op.like]: '%' + qString + '%'}},
-        { genre: {[Op.like]: '%' + qString + '%'}},
-        { year: {[Op.like]: '%' + qString + '%'}},
-      ]
-    },
-    limit: pageLimit,
-    offset: pageOffset
-  });
-  const pagination = Array.from([...Array(Math.ceil(count/pageLimit)).keys()]); // create array from number of pages to populate pagination view
-  const books = rows.map(book => book.dataValues);
-  res.render('books/', {books: books, page: page, url: url, pagination: pagination, title: 'Books'});
-}));
 
 
 module.exports = router;
