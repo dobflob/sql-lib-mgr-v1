@@ -1,0 +1,4 @@
+ul.pagination
+  each page in pagination
+    li
+      a(href=`/books/search?${url}page=${page + 1}`)= page + 1

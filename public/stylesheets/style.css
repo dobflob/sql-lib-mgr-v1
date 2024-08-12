@@ -114,3 +114,8 @@ ul.error {
   text-align: center;
   margin-top: 75px;
 }
+
+.pagination li {
+  display: inline;
+  margin-right: 10px;
+}

@@ -3,6 +3,11 @@ const router = express.Router();
 const Book = require('../models').Book;
 const { Op } = require("sequelize");
 
+const defaultPage = 1;
+const pageLimit = 10;
+let pageOffset = 0;
+let url = '';
+
 /**
  * Reusable function to make async calls to the database so that actions are performed only once data is returned
  * @param {function} cb
@@ -21,27 +26,17 @@ function asyncHandler(cb) {
 
 /* GET books listing */
 router.get('/', asyncHandler(async (req, res) => {
-  const books = await Book.findAll();
-  res.render('books/index', { books: books, title: 'Books'});
-}));
+  pageOffset = 0; //clear offset
+  url = ''; //clear url
 
-router.get('/search', asyncHandler(async (req, res) => {
-  const queryString = req.query.search;
-  //console.log(queryString);
-  const results = await Book.findAll({
-    attributes: ['title', 'author', 'genre', 'year'],
-    where: {
-      [Op.or]: [
-        { title: {[Op.like]: '%' + queryString + '%'}},
-        { author: {[Op.like]: '%' + queryString + '%'}},
-        { genre: {[Op.like]: '%' + queryString + '%'}},
-        { year: {[Op.like]: '%' + queryString + '%'}},
-      ]
-    }
+  const { count, rows } = await Book.findAndCountAll({
+    limit: pageLimit,
+    offset: pageOffset,
   });
 
-  const books = results.map(book => book.dataValues);
-  res.render('books/', {books: books, title: 'Books'});
+  const pagination = Array.from([...Array(Math.ceil(count/pageLimit)).keys()]);
+  const books = rows.map(book => book.dataValues);
+  res.render(`books/`, { books: books, url: url, pagination: pagination, title: 'Books'});
 }));
 
 /* GET New book form */
@@ -99,5 +94,31 @@ router.post('/:id/delete', asyncHandler(async (req, res) => {
   await book.destroy(req.body);
   res.redirect(`/books`);
 }));
+
+router.get('/:search', asyncHandler(async (req, res) => {
+  const page = req.query.page ? parseInt(req.query.page) : defaultPage;
+  const qString = req.query.search ? req.query.search : '';
+  pageOffset = (page - 1) * pageLimit;
+
+  url = qString ? `search=${qString}&` : '';
+
+  const { count, rows } = await Book.findAndCountAll({
+    attributes: ['id', 'title', 'author', 'genre', 'year'],
+    where: {
+      [Op.or]: [
+        { title: {[Op.like]: '%' + qString + '%'}},
+        { author: {[Op.like]: '%' + qString + '%'}},
+        { genre: {[Op.like]: '%' + qString + '%'}},
+        { year: {[Op.like]: '%' + qString + '%'}},
+      ]
+    },
+    limit: pageLimit,
+    offset: pageOffset
+  });
+  const pagination = Array.from([...Array(Math.ceil(count/pageLimit)).keys()]);
+  const books = rows.map(book => book.dataValues);
+  res.render('books/', {books: books, page: page, url: url, pagination: pagination, title: 'Books'});
+}));
+
 
 module.exports = router;
