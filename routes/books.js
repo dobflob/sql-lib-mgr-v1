@@ -3,10 +3,10 @@ const router = express.Router();
 const Book = require('../models').Book;
 const { Op } = require("sequelize");
 
-const defaultPage = 1;
-const pageLimit = 10;
-let pageOffset = 0;
-let url = '';
+const defaultPage = 1; // default to page 1 of results
+const pageLimit = 10; // results per page
+let pageOffset = 0; // starting page offset
+let url = ''; // holds the search string if user searches - starts blank
 
 /**
  * Reusable function to make async calls to the database so that actions are performed only once data is returned
@@ -34,7 +34,7 @@ router.get('/', asyncHandler(async (req, res) => {
     offset: pageOffset,
   });
 
-  const pagination = Array.from([...Array(Math.ceil(count/pageLimit)).keys()]);
+  const pagination = Array.from([...Array(Math.ceil(count/pageLimit)).keys()]); // create array from number of pages to populate pagination view
   const books = rows.map(book => book.dataValues);
   res.render(`books/`, { books: books, url: url, pagination: pagination, title: 'Books'});
 }));
@@ -95,11 +95,13 @@ router.post('/:id/delete', asyncHandler(async (req, res) => {
   res.redirect(`/books`);
 }));
 
+/* GET search results */
 router.get('/:search', asyncHandler(async (req, res) => {
   const page = req.query.page ? parseInt(req.query.page) : defaultPage;
   const qString = req.query.search ? req.query.search : '';
   pageOffset = (page - 1) * pageLimit;
 
+  // set value of url to the search text if there is search text
   url = qString ? `search=${qString}&` : '';
 
   const { count, rows } = await Book.findAndCountAll({
@@ -115,7 +117,7 @@ router.get('/:search', asyncHandler(async (req, res) => {
     limit: pageLimit,
     offset: pageOffset
   });
-  const pagination = Array.from([...Array(Math.ceil(count/pageLimit)).keys()]);
+  const pagination = Array.from([...Array(Math.ceil(count/pageLimit)).keys()]); // create array from number of pages to populate pagination view
   const books = rows.map(book => book.dataValues);
   res.render('books/', {books: books, page: page, url: url, pagination: pagination, title: 'Books'});
 }));

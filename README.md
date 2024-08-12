@@ -9,3 +9,16 @@ In this project, you will build a web application that will include pages to lis
 The project will provide a great opportunity to start familiarizing yourself with the work of implementing and utilizing a database for data persistence, as well as leveraging helpful database related tools to view and interact with your database.
 
 After completing this project, you'll be able to add true data persistence in your own projects, and implement, modify, interact with and maintain your own local custom SQLite database. You will also have a powerful new skill to add to your resume.
+
+## Extra Credit and other changes
+- Users can search for books by title, author, genre or year.
+- Pagination has been added to both the main book list and the search results list.
+- Pagination class was added to the CSS to have the page number layout horizontally
+- Year validation has been added to ensure the entered year is numeric
+
+## Future Enhancements
+- Want to make the buttons more intuitive
+- Want to add a create book button to the update page so users can more quickly add books
+- Add validation so that year must be after a certain year
+- Retain search when user searches for a book, views the update page, and then hits cancel
+- Plenty of others I'm sure :D
